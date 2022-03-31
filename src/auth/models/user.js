@@ -10,16 +10,17 @@ async function createUser(data) {
   try {
 
     // Checking if the regesting user is a seller type to enter the right query:
-    
-    let SQL = `INSERT INTO USERS (user_name,hashed_password,email) VALUES ($1,$2,$3) RETURNING *;`;
+
+    let isAdmin = data.is_admin;
+    let SQL = isAdmin ? `INSERT INTO USERS (user_name,hashed_password,email,is_admin) VALUES ($1,$2,$3,$4) RETURNING *;` : `INSERT INTO USERS (user_name,hashed_password,email) VALUES ($1,$2,$3) RETURNING *;`;
 
     data.password = await bcrypt.hash(data.password, 10);
     let user = data.user_name.toLowerCase().trim(); // make user_name a lower case.
     let email = data.email.toLowerCase().trim(); // make email a lower case.
 
-    let safeValues = [user, data.password, email];
-    let usernameQuery = await client.query(SQL, safeValues);
+    let safeValues = isAdmin ? [user, data.password, email, isAdmin] : [user, data.password, email];
 
+    let usernameQuery = await client.query(SQL, safeValues);
     return usernameQuery.rows[0];
 
   } catch (e) {
@@ -105,11 +106,53 @@ async function getUserDetails(userId) {
     let safeValues = [userId];
     let usernameQuery = await client.query(SQL, safeValues);
 
-    return usernameQuery.rows;
+    return usernameQuery.rows[0];
+  } catch (e) {
+    throw new Error(e.message);
+  }
+}
+
+async function getUserInfo(userId) {
+  try {
+    let SQL = `SELECT * FROM USERS WHERE id=$1`;
+    let safeValues = [userId];
+    let usernameQuery = await client.query(SQL, safeValues);
+
+    return usernameQuery.rows[0];
+  } catch (e) {
+    throw new Error(e.message);
+  }
+}
+
+async function updateUser(data, userId) {
+  try {
+    let userName = data.user_name;
+    let email = data.email;
+
+    let SQL = `UPDATE USERS SET user_name=$1,email=$2 WHERE id=$3;`;
+    let safeValues = [userName, email, userId];
+    let editUserQuery = await client.query(SQL, safeValues);
+
+    return editUserQuery.rows[0];
+  } catch (e) {
+    throw new Error(e.message);
+  }
+}
+
+async function deleteUser(userId) {
+  try {
+    let SQL = `DELETE FROM JWT WHERE user_id=$1;`;
+    let safeValues = [userId];
+    await client.query(SQL, safeValues);
+
+    SQL = `DELETE FROM USERS WHERE id=$1;`;
+    let deleteUserQuery = await client.query(SQL, safeValues);
+
+    return deleteUserQuery.rows[0];
   } catch (e) {
     throw new Error(e.message);
   }
 }
 
 
-module.exports = { createUser, getUser, getUserById, getUserByEmail, updateUserPassword, getAllUsers, getUserDetails};
+module.exports = { createUser, getUser, getUserById, getUserByEmail, updateUserPassword, getAllUsers, getUserDetails,getUserInfo, updateUser, deleteUser };

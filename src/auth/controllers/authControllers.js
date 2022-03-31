@@ -7,6 +7,9 @@ const {
   getUserById,
   updateUserPassword,
   getAllUsers,
+  getUserInfo,
+  updateUser,
+  deleteUser,
   getUserDetails,
 } = require('../models/user');
 const { authenticateWithToken } = require('../models/helpers');
@@ -184,6 +187,47 @@ const getUserHandler = async (req, res, next) => {
   }
 };
 
+const getUserDetailsHandler = async (req, res, next) => {
+  try {
+    let user = await getUserInfo(req.params.userID);
+    return res.status(200).json({ user });
+
+  }
+  catch (e) {
+    next(e);
+  }
+};
+
+
+// Update user details
+const UpdateUserHandler = async (req, res, next) => {
+  try {
+    let user = await updateUser(req.body,req.params.userID);
+    return res.status(200).json({      
+      status: 200,
+      message: 'User informations has been updated!',
+      user: user });
+  }
+  catch (e) {
+    next(e);
+  }
+};
+
+// Delete user
+const DeleteUserHandler = async (req, res, next) => {
+  try {
+    await deleteUser(req.params.userID);
+    return res.status(200).json({
+      status: 200,
+      message: 'User has been removed!' });
+
+  }
+  catch (e) {
+    next(e);
+  }
+};
+
+
 module.exports = {
   signUpHandler,
   signInHandler,
@@ -192,4 +236,7 @@ module.exports = {
   updateUserPasswordHandler,
   getAllUsersHandler,
   getUserHandler,
+  getUserDetailsHandler,
+  UpdateUserHandler,
+  DeleteUserHandler,
 };

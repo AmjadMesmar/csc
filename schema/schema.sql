@@ -8,6 +8,7 @@ CREATE TABLE USERS(
   user_name VARCHAR(100) UNIQUE,
   hashed_password VARCHAR(250) NOT NULL,
   email VARCHAR(150) NOT NULL UNIQUE,
+  is_admin BOOLEAN DEFAULT FALSE,
   created_at timestamp not null default current_timestamp
 );
 
